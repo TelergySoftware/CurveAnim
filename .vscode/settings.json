@@ -1,8 +1,0 @@
-{
-    "python.autoComplete.extraPaths": [
-        "C:/Users/Matheus/Programs/BlenderDev/blender_autocomplete-master/2.92",
-    ],
-    "python.analysis.extraPaths": [
-        "C:/Users/Matheus/Programs/BlenderDev/blender_autocomplete-master/2.92"
-    ]
-}
