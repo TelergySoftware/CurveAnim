@@ -31,6 +31,13 @@ class UpdateAnimation(bpy.types.Operator):
         sce = bpy.context.scene
         current_frame = sce.frame_current
 
+        if  self.action.curve_anim.back_is_positive:
+            self.action.curve_anim.left_extremes['max'] *= -1
+            self.action.curve_anim.left_extremes['min'] *= -1
+            
+            self.action.curve_anim.right_extremes['max'] *= -1
+            self.action.curve_anim.right_extremes['min'] *= -1
+
         for f in range(sce.frame_start, sce.frame_end+1):
             sce.frame_set(f)
             self.action.curve_anim.reset_min_max()
@@ -45,12 +52,6 @@ class UpdateAnimation(bpy.types.Operator):
             self.action.curve_anim.right_extremes['max'] = self.action.curve_anim.right_extremes['max'] if self.action.curve_anim.right_extremes['max'] >= pbone.location.y else pbone.location.y # bone in object space
             self.action.curve_anim.right_extremes['min'] = self.action.curve_anim.right_extremes['min'] if self.action.curve_anim.right_extremes['min'] <= pbone.location.y else pbone.location.y
 
-        if self.action.curve_anim.back_is_positive:
-            self.action.curve_anim.left_extremes['max'] *= -1
-            self.action.curve_anim.left_extremes['min'] *= -1
-            
-            self.action.curve_anim.right_extremes['max'] *= -1
-            self.action.curve_anim.right_extremes['min'] *= -1
         
         print(self.action.curve_anim.right_extremes)
 
@@ -75,9 +76,9 @@ class UpdateAnimation(bpy.types.Operator):
         self.action.curve_anim.og_action['helpers']['helper'].append(left_helper)
         self.action.curve_anim.og_action['helpers']['helper'].append(right_foot)
 
-        location_list = left_foot.id_data.animation_data.action.fcurves[1].keyframe_points[:]
+        location_list = self.action.fcurves.find(data_path=f'pose.bones["{self.action.curve_anim.foot_bone_left}"].location', index=1).keyframe_points[:]
         self.action.curve_anim.og_action['bones']['action_data'].append(location_list)
-        location_list = right_foot.id_data.animation_data.action.fcurves[1].keyframe_points[:]
+        location_list = self.action.fcurves.find(data_path=f'pose.bones["{self.action.curve_anim.foot_bone_right}"].location', index=1).keyframe_points[:]
         self.action.curve_anim.og_action['bones']['action_data'].append(location_list)
 
         s_left = self.action.curve_anim.left_extremes['max'] - self.action.curve_anim.left_extremes['min']
@@ -96,10 +97,8 @@ class UpdateAnimation(bpy.types.Operator):
             right_fcu_z = right_helper.animation_data.action.fcurves[0]
 
         for i, location in enumerate(zip(self.action.curve_anim.og_action['bones']['action_data'][0], self.action.curve_anim.og_action['bones']['action_data'][1])):
-            sce.frame_set(location[0].co.x)
-            left_empty_z_rot = theta_left * left_foot.location.y / s_left
-            sce.frame_set(location[1].co.x)
-            right_empty_z_rot = theta_right * right_foot.location.y / s_left
+            left_empty_z_rot = theta_left * location[0].co.y / s_left
+            right_empty_z_rot = theta_right * location[1].co.y / s_left
 
             left_fcu_z.keyframe_points[i].co = location[0].co.x, left_empty_z_rot
             right_fcu_z.keyframe_points[i].co = location[1].co.x, right_empty_z_rot
